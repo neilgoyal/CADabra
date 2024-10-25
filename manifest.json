@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "CADabra",
+    "version": "1.0",
+    "description": "A template Chrome extension called CADabra.",
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "permissions": [
+      "activeTab",
+      "scripting"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+      }
+    ]
+  }
+  
