@@ -1,0 +1,1 @@
+zoo cli version requirement: v0.2.85

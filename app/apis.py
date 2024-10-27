@@ -13,58 +13,23 @@ import subprocess
 import io
 import base64
 from PIL import Image
+from multimodal_to_text import *
 
 app = Flask(__name__)
-
-@app.route('/prepare_image', methods=['POST'])
-def prepare_image():
-    try:
-        # Get image file and max size from the request
-        img_file = request.files.get('image')
-        max_size = int(request.form.get('max_size', 1024 * 1024))  # Default to 1MB
-
-        if not img_file:
-            return jsonify({"error": "No image file provided"}), 400
-
-        # Open the image
-        img = Image.open(img_file)
-        
-        # Convert RGBA to RGB if necessary
-        if img.mode == 'RGBA':
-            img = img.convert('RGB')
-
-        quality = 85
-        img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format='JPEG', quality=quality)
-        img_byte_arr = img_byte_arr.getvalue()
-
-        # Adjust quality to meet the max size constraint
-        while len(img_byte_arr) > max_size and quality > 5:
-            quality -= 5
-            img_byte_arr = io.BytesIO()
-            img.save(img_byte_arr, format='JPEG', quality=quality)
-            img_byte_arr = img_byte_arr.getvalue()
-
-        # If the image still exceeds max size, return an error
-        if len(img_byte_arr) > max_size:
-            return jsonify({"error": f"Image size exceeds {max_size / 1024 / 1024}MB limit"}), 400
-
-        # Encode the image in base64
-        data = base64.b64encode(img_byte_arr).decode('utf-8')
-        media_type = 'image/jpeg'
-
-        return jsonify({"image_data": data, "media_type": media_type})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+clear_folders(
+    IMAGE_FOLDER_PATH, VIDEO_FOLDER_PATH, AUDIO_FOLDER_PATH
+)  # On restarting server to upload
 
 
-@app.route('/videoToImages', methods=['POST'])
+
+
+# Video Upload
+@app.route("/videoUpload", methods=["POST"])
 def videoToImages():
     try:
-        video_file = request.files.get('video_file')
+        video_file = request.files.get("video_file")
         n = 5  # Default to 5 frames if not specified
-        output_dir = 'outputFrames'
+        output_dir = VIDEO_FOLDER_PATH
 
         if not video_file:
             return jsonify({"error": "No video file provided"}), 400
@@ -73,88 +38,53 @@ def videoToImages():
         os.makedirs(output_dir, exist_ok=True)
         video_path = os.path.join(output_dir, video_file.filename)
         video_file.save(video_path)
-        
-        cap = cv2.VideoCapture(video_path)
-        if not cap.isOpened():
-            return jsonify({"error": "Unable to open video file"}), 500
-
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        if total_frames < n:
-            return jsonify({"error": f"Video has fewer frames ({total_frames}) than requested ({n})"}), 400
-
-        interval = total_frames // n
-        video_paths = []
-
-        for i in range(n):
-            frame_pos = i * interval
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_pos)
-
-            ret, frame = cap.read()
-            if not ret:
-                continue
-
-            frame_filename = os.path.join(output_dir, f"frame_{i + 1}.jpg")
-            video_paths.append(frame_filename)
-            cv2.imwrite(frame_filename, frame)
-
-        cap.release()
-        return jsonify({"message": "Frames extracted successfully", "frame_paths": frame_paths})
+        extract_frames_from_videos(file_name=video_file.filename)  # Saved as frames
+        return jsonify({"message": "Video saved successfully"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/stltoImage')
-def stlToImage(path):
+# Images Upload
+@app.route("/imageUpload", methods=["POST"])
+def upload_image():
     try:
-        # Get the STL file from the request
-        stl_file = request.files.get('stl_file')
-        output_folder = 'outputImages'
+        image_file = request.files.get("image_file")
 
-        if not stl_file:
-            return jsonify({"error": "No STL file provided"}), 400
+        if not image_file:
+            return jsonify({"error": "No image file provided"}), 400
 
-        # Save the STL file temporarily
-        os.makedirs(output_folder, exist_ok=True)
-        stl_file_path = os.path.join(output_folder, stl_file.filename)
-        stl_file.save(stl_file_path)
+        # Save the image file
+        os.makedirs(IMAGE_FOLDER_PATH, exist_ok=True)
+        image_path = os.path.join(IMAGE_FOLDER_PATH, image_file.filename)
+        image_file.save(image_path)
 
-        figure = pyplot.figure()
-        axes = figure.add_subplot(projection='3d')
-
-        your_mesh = mesh.Mesh.from_file(path)
-        axes.add_collection3d(mplot3d.art3d.Poly3DCollection(your_mesh.vectors))
-
-        scale = your_mesh.points.flatten()
-        axes.auto_scale_xyz(scale, scale, scale)
-
-        output_filename = 'outputImages/model.jpg'
-        pyplot.savefig(output_filename, format='jpg', bbox_inches='tight')
-        pyplot.close()
-        
-        return jsonify({"message": "Image generated successfully", "image_path": output_filename})
+        return jsonify({"message": "Image saved successfully", "path": image_path})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/audiototext', methods=['POST'])
+# Audio Uploading
+@app.route("/audioUpload", methods=["POST"])
 def transcribe_mp3_file():
     try:
         # Get MP3 file and output folder from the request
-        mp3_file = request.files.get('mp3_file')
-        output_folder = request.form.get('output_folder', 'transcripts')
-        bucket_name = request.form.get('bucket_name', 'aiatl')
-        
+        mp3_file = request.files.get("mp3_file")
+        output_folder = request.form.get("output_folder", AUDIO_FOLDER_PATH)
+        bucket_name = request.form.get("bucket_name", "aiatl")
+
         if not mp3_file:
             return jsonify({"error": "No MP3 file provided"}), 400
 
+        mp3_file_path = os.path.join(AUDIO_FOLDER_PATH, mp3_file.filename)
+        mp3_file.save(mp3_file_path)
         # Ensure the output folder exists
         os.makedirs(output_folder, exist_ok=True)
 
         # Initialize AWS clients with specified region
-        #s3_client = boto3.client("s3", region_name=region_name)
-        
+        # s3_client = boto3.client("s3", region_name=region_name)
+
         # Upload the MP3 file to S3
         mp3_file_name = os.path.basename(mp3_file_path)
         s3_key = f"audio/{mp3_file_name}"
@@ -180,7 +110,9 @@ def transcribe_mp3_file():
         # Wait for the transcription job to complete
         print(f"Waiting for transcription job {job_name} to complete...")
         while True:
-            status = transcribe_client.get_transcription_job(TranscriptionJobName=job_name)
+            status = transcribe_client.get_transcription_job(
+                TranscriptionJobName=job_name
+            )
             job_status = status["TranscriptionJob"]["TranscriptionJobStatus"]
             if job_status in ["COMPLETED", "FAILED"]:
                 break
@@ -198,7 +130,12 @@ def transcribe_mp3_file():
             s3_client.delete_object(Bucket=bucket_name, Key=s3_key)
             transcribe_client.delete_transcription_job(TranscriptionJobName=job_name)
 
-            return jsonify({"message": "Transcription successful", "transcription_path": transcript_file_path})
+            return jsonify(
+                {
+                    "message": "Transcription successful",
+                    "transcription_path": transcript_file_path,
+                }
+            )
         else:
             return jsonify({"error": f"Transcription job {job_name} failed"}), 500
 
@@ -206,37 +143,84 @@ def transcribe_mp3_file():
         return jsonify({"error": str(e)}), 500
 
 
-## call using 
-    # mp3 = "audio1.mp3"
-    # bucket_name = "aiatl"
-    # output_folder = "transcripts"
-    # region_name = "us-east-1"
+# Stl File upload
+@app.route("/stlUpload")
+def stlToImage():
+    try:
+        # Get the STL file from the request
+        stl_file = request.files.get("stl_file")
+        output_folder = IMAGE_FOLDER_PATH
 
-@app.route('/kcltostep', methods=['POST'])
+        if not stl_file:
+            return jsonify({"error": "No STL file provided"}), 400
+
+        # Save the STL file temporarily
+        os.makedirs(output_folder, exist_ok=True)
+        stl_file_path = os.path.join(output_folder, stl_file.filename)
+        stl_file.save(stl_file_path)
+
+        figure = pyplot.figure()
+        axes = figure.add_subplot(projection="3d")
+
+        your_mesh = mesh.Mesh.from_file(stl_file_path)
+        axes.add_collection3d(mplot3d.art3d.Poly3DCollection(your_mesh.vectors))
+
+        scale = your_mesh.points.flatten()
+        axes.auto_scale_xyz(scale, scale, scale)
+
+        output_filename = IMAGE_FOLDER_PATH + "/model.jpg"
+        pyplot.savefig(output_filename, format="jpg", bbox_inches="tight")
+        pyplot.close()
+
+        return jsonify(
+            {"message": "Image generated successfully", "image_path": output_filename}
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/kcltostep", methods=["POST"])
 def convert_kcl_to_obj():
     try:
-        kcl_file = request.files.get('kcl_file')
-        #output_dir = request.form.get('output_dir')
-        output_dir = 'step_output'
+        # Get filename from the request
+        filename = request.form.get("filename")
+        if not filename or not filename.endswith(".kcl"):
+            return jsonify({"error": "Invalid filename provided"}), 400
 
-        # Save the uploaded KCL file temporarily
-        kcl_file_path = os.path.join(output_dir, kcl_file.filename)
-        kcl_file.save(kcl_file_path)
+        # Define paths
+        base_dir = os.path.dirname(os.path.dirname(__file__))  # Base path for 'cadabra'
+        output_dir = os.path.join(base_dir, "cadabra-vis/public/assets")
+        output_filename = filename.replace(".kcl", ".glb")
+        generated_file_path = os.path.join(output_dir, "output.glb")
+        final_output_file_path = os.path.join(output_dir, output_filename)
+        kcl_file_path = os.path.join(output_dir, filename)
 
-        # Build the command to run in CLI
-        command = f"zoo kcl export --output-format=obj {kcl_file_path} {output_dir}"
-
-        # Run the command
+        # Run the zoo kcl export command with the output as a directory
+        command = f"zoo kcl export --output-format=glb {kcl_file_path} {output_dir}"
         process = subprocess.run(command, shell=True, capture_output=True, text=True)
 
         # Check for errors
         if process.returncode != 0:
             return jsonify({"error": process.stderr}), 400
 
-        return jsonify({"message": "Conversion successful!", "output_dir": output_dir})
+        # Rename the generated output file to match the input filename
+        if os.path.exists(generated_file_path):
+            os.rename(generated_file_path, final_output_file_path)
+        else:
+            return jsonify({"error": "Conversion file not found"}), 500
+
+        return jsonify(
+            {
+                "message": "Conversion successful!",
+                "output_dir": output_dir,
+                "output_file": output_filename,
+            }
+        )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+if __name__ == "__main__":
+    app.run(debug=True, port=4500)
