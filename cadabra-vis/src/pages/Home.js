@@ -3,15 +3,15 @@ import {Link} from "react-router-dom";
 // import { Resizable } from 're-resizable';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF } from '@react-three/drei';
-import React, { Component } from 'react';
+import { Component } from 'react';
 import HorizontalTimeline from 'react-horizontal-timeline';
 import Viewer from './Viewer';
 import { CADspace, VersionSpace, PromptSpace, HomeSpace } from '../ss';
 import Chat from './Chat';
 import CodeEditor from './CodeEditor';
-
-const {Resizable} = require('react-resizable');
 import '../App.css';
+
+
 
 const VALUES = [
   "2022-01-01",
@@ -59,7 +59,7 @@ class Home extends Component {
   render() {
     return (
       <HomeSpace>
-        <Resizable>
+
         <CADspace>
           <div className="viewer-timeline-container">
             {/* 3D Viewer with dynamic fileUrl */}
@@ -98,9 +98,9 @@ class Home extends Component {
             </div>
           </div>
         </CADspace>
-        </Resizable>
+
         <VersionSpace> <CodeEditor />  </VersionSpace>
-  <PromptSpace> <Chat></Chat> </PromptSpace>
+        <PromptSpace> <Chat></Chat> </PromptSpace>
       </HomeSpace>
     );
   }
