@@ -150,7 +150,17 @@ def extract_frames_from_videos(
                 cap.release()
 
 
-def generate_claude_prompt(
+
+
+
+
+
+
+
+
+
+
+def answer_user_prompt(
     image_folder_path=IMAGE_FOLDER_PATH,
     audio_folder_path=AUDIO_FOLDER_PATH,
     text="",
