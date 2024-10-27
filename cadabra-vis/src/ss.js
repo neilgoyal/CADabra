@@ -1,7 +1,5 @@
 import styled from "styled-components";
 import grid from "./assets/grid.jpg" ;
-import wavyGrid from "./assets/wavyGrid.jpg" ;
-import { Color } from "three";
 import Split from 'react-split';
 
 

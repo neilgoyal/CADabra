@@ -3,7 +3,7 @@ import React, { Component, createRef } from 'react';
 import HorizontalTimeline from 'react-horizontal-timeline';
 import Viewer from './Viewer';
 import CodeEditor from './CodeEditor';
-import { CADspace, VersionSpace, PromptSpace, HomeSpace, CodePane, SaveButton, FileNameText } from '../ss';
+import { CADspace, VersionSpace, PromptSpace, HomeSpace, CodePane, SaveButton, FileNameText, SplitContainer} from '../ss';
 import Chat from './Chat';
 import '../App.css';
 
