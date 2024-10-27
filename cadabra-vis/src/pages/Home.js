@@ -44,16 +44,10 @@ class Home extends Component {
   }
 
   // Load the .glb file based on the current value
-  loadFile = async () => {
+  loadFile = () => {
     const currentDate = VALUES[this.state.value];
-    try {
-      // Dynamically import the file based on the selected date
-      const fileUrl = await import(`../assets/${currentDate}.glb`);
-      this.setState({ fileUrl: fileUrl.default });
-    } catch (error) {
-      console.error(`Error loading file for ${currentDate}:`, error);
-      this.setState({ fileUrl: '' }); // Clear fileUrl if load fails
-    }
+    const fileUrl = `/assets/${currentDate}.glb`; // Path to file in public/assets
+    this.setState({ fileUrl });
   };
 
   render() {

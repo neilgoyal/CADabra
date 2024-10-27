@@ -46,10 +46,10 @@ export const NavSpace = styled.div `
     background-color: ${(props) => props.color? props.color: Colors.black };
     align-items: center;
     text-align: left;
-    height: 8vh;
+    height: 6vh;  /* Reduced height */
     width: 100%;
     position: relative;
-`
+`;
 
 
 export const HomeSpace = styled.div `
