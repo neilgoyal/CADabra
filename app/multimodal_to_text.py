@@ -240,4 +240,4 @@ def answer_user_prompt(
     clear_folders(IMAGE_FOLDER_PATH, VIDEO_FOLDER_PATH, AUDIO_FOLDER_PATH)
 
     # Return the simplified prompt as structured JSON
-    return simplified_prompt["new_prompt"]
+    return simplified_prompt

@@ -50,7 +50,7 @@ def text_to_cad():
 
     # Simplify the prompt
     multimodal_prompt = answer_user_prompt(text=prompt)
-    prompt = simplify_original_prompt(multimodal_prompt)
+    prompt = simplify_original_prompt(multimodal_prompt["new_prompt"])
 
     # Run the asynchronous CAD generation function
     body = asyncio.run(simple_text_to_cad(prompt))
@@ -71,7 +71,11 @@ def text_to_cad():
     encoded_glb_content = base64.b64encode(source_glb_content).decode("utf-8")
 
     # Return the result as JSON
-    response_data = {"kcl_code": kcl_code, "source_glb": encoded_glb_content}
+    response_data = {
+        "kcl_code": kcl_code,
+        "source_glb": encoded_glb_content,
+        "llm": multimodal_prompt["object_created"],
+    }
 
     return jsonify(response_data)
 
@@ -107,7 +111,7 @@ def kcl_editing():
         return jsonify({"error": "Missing args in request"}), 400
 
     # Run the asynchronous CAD generation function
-    final_code = generate_and_fix_kcl_code(kcl_code, prompt)
+    final_code, llm = generate_and_fix_kcl_code(kcl_code, prompt)
 
     # Return the result as JSON
     # Need to return body.code and cad_outputs/source.glb
@@ -125,7 +129,11 @@ def kcl_editing():
     encoded_glb_content = base64.b64encode(source_glb_content).decode("utf-8")
 
     # Return the result as JSON
-    response_data = {"kcl_code": kcl_code, "source_glb": encoded_glb_content}
+    response_data = {
+        "kcl_code": kcl_code,
+        "source_glb": encoded_glb_content,
+        "llm": llm,
+    }
 
     return jsonify(response_data)
 

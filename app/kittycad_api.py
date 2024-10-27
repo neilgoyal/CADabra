@@ -203,6 +203,7 @@ async def simple_text_to_cad(prompt) -> TextToCad:
 # For structured outputs
 class KCLCode(BaseModel):
     updated_kcl_code: str
+    llm: str
 
 
 def kcl_code_updater(kcl_code: str, prompt: str) -> Optional[str]:
@@ -231,6 +232,7 @@ def kcl_code_updater(kcl_code: str, prompt: str) -> Optional[str]:
                     f"Here is the original KittyCAD language code:\n```kcl\n{kcl_code}\n```\n\n"
                     f'Please update the code based on the following prompt:\n"{prompt}"\n\n'
                     "Provide only the updated, EXTREMELY COMPREHENSIVE and SYNTACTICALLY CORRECT KittyCAD language code without additional explanations. DO NOT LOSE THE ORIGINAL STRUCTURE OF THIS CAD OBJECT!! It MUST be valid KittyCAD language code! DECIMAL POINTS MUST NOT END WITH 0!!"
+                    f"The second output (llm) is a summary of the changes being made to the original CAD file code."
                 ),
             },
         ]
@@ -245,7 +247,7 @@ def kcl_code_updater(kcl_code: str, prompt: str) -> Optional[str]:
 
         simplified_prompt = json.loads(response.choices[0].message.content.strip())
         # Return the simplified prompt as structured JSON
-        return simplified_prompt["updated_kcl_code"]
+        return simplified_prompt
         # Verify that KCL works if not loop
 
     except Exception as e:
@@ -366,7 +368,9 @@ def generate_and_fix_kcl_code(
         print(f"\nAttempt {retries + 1}:")
 
         # Update the KCL code based on the prompt
-        updated_code = kcl_code_updater(current_code, prompt)
+
+        a = kcl_code_updater(current_code, prompt)
+        updated_code = a["updated_kcl_code"]
 
         if not updated_code:
             print("Failed to update the KCL code.")
@@ -400,7 +404,7 @@ def generate_and_fix_kcl_code(
             )
 
     print("Failed to generate lint-free KCL code after maximum retries.")
-    return kcl_code
+    return kcl_code, a["llm"]
 
 
 def merge_and_fix_kcl_code(
