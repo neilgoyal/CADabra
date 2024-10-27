@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from stl import mesh
-from mpl_toolkits import mplot3d
+
 from matplotlib import pyplot
 import cv2
 import os
@@ -144,7 +144,7 @@ def transcribe_mp3_file():
 
 
 # Stl File upload
-@app.route("/stlUpload")
+@app.route("/stlUpload", methods=["POST"])
 def stlToImage():
     try:
         # Get the STL file from the request
