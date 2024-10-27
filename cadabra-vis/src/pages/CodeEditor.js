@@ -7,7 +7,6 @@ const CodeEditor = () => {
 
   // Setup Monaco configurations before mount
   const handleBeforeMount = (monaco) => {
-    // Register language if not already registered
     if (!monaco.languages.getLanguages().some(lang => lang.id === 'kittyCad')) {
       monaco.languages.register({ id: 'kittyCad' });
 
@@ -45,7 +44,7 @@ const CodeEditor = () => {
 
   // Load content from my-file.kcl and update schemas when dependencies change
   useEffect(() => {
-    // Load file content from assets
+    // Load file content from public/assets/my-file.kcl
     const loadFileContent = async () => {
       try {
         const response = await fetch('/assets/my-file.kcl');
@@ -62,7 +61,6 @@ const CodeEditor = () => {
 
     loadFileContent();
 
-    // Fetch schemas if applicable
     const fetchSchemas = async () => {
       const newSchemas = await fetchSchemasFromSource();
       setSchemas(newSchemas);
@@ -73,7 +71,7 @@ const CodeEditor = () => {
     if (schemas.length) {
       console.log("Schemas updated:", schemas);
     }
-  }, [schemas]); // Add dependencies as needed
+  }, [schemas]);
 
   return (
     <Editor
@@ -95,9 +93,8 @@ const CodeEditor = () => {
   );
 };
 
-// Example async function to fetch schemas (this could come from an API or other source)
+// Example async function to fetch schemas
 async function fetchSchemasFromSource() {
-  // Placeholder example of schema data
   return [
     { uri: 'http://my-schema/kittyCad', schema: { /* define schema properties here */ } }
   ];
