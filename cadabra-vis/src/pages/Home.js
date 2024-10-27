@@ -1,3 +1,4 @@
+// Home.js
 import React, { Component, createRef } from 'react';
 import HorizontalTimeline from 'react-horizontal-timeline';
 import Viewer from './Viewer';
@@ -6,13 +7,13 @@ import { CADspace, VersionSpace, PromptSpace, HomeSpace, CodePane, SaveButton, F
 import Chat from './Chat';
 import '../App.css';
 
-const VALUES = ["2022-01-01", "2022-02-15", "2022-03-10", "2022-04-25"];
 const TIMELINE_KEY = 'timeline_value';
 
 class Home extends Component {
   codeEditorRef = createRef();
 
   state = {
+    values: [], // Dynamically populated with dates from server
     value: parseInt(localStorage.getItem(TIMELINE_KEY), 10) || 0,
     fileUrl: '',
     isLoading: true,
@@ -21,17 +22,34 @@ class Home extends Component {
   };
 
   componentDidMount() {
-    this.loadFile();
+    this.fetchAvailableFiles();
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.value !== this.state.value) {
+    if (prevState.value !== this.state.value && this.state.values.length > 0) {
       this.loadFile();
     }
   }
 
+  fetchAvailableFiles = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/files'); // Endpoint to get available files
+      if (!response.ok) throw new Error('Failed to fetch available files');
+      const data = await response.json();
+      const files = data.files.map(file => file.replace('.glb', '')); // Remove .glb extension
+      this.setState({ values: files }, this.loadFile);
+    } catch (error) {
+      console.error('Error fetching files:', error);
+      this.setState({ hasError: true, errorMessage: 'Failed to fetch available files' });
+    }
+  };
+
   loadFile = async () => {
-    const currentDate = VALUES[this.state.value];
+    const { values, value } = this.state;
+    if (values.length === 0) return; // Ensure values are loaded
+    const currentDate = values[value];
+    if (!currentDate) return;
+
     const fileUrl = `/assets/${currentDate}.glb?cache=${new Date().getTime()}`;
     this.setState({ isLoading: true, hasError: false, errorMessage: '' });
 
@@ -84,11 +102,10 @@ class Home extends Component {
   handleSave = async () => {
     if (this.codeEditorRef.current) {
       const code = this.codeEditorRef.current.getCode();
-      const fileName = `${VALUES[this.state.value]}.kcl`;
+      const fileName = `${this.state.values[this.state.value]}.kcl`;
       const filePath = `/assets/${fileName}`;
 
       try {
-        // Step 1: Save the file content to the server
         const saveResponse = await fetch('http://localhost:4000/save-file', {
           method: 'POST',
           headers: {
@@ -99,8 +116,6 @@ class Home extends Component {
 
         if (saveResponse.ok) {
           console.info('File saved successfully on server');
-
-          // Step 2: Send only the filename to the /kcltostep endpoint for conversion
           const conversionResponse = await fetch('http://localhost:4500/kcltostep', {
             method: 'POST',
             headers: {
@@ -123,7 +138,6 @@ class Home extends Component {
     }
   };
 
-
   handleTimelineClick = (index) => {
     this.setState({ value: index }, () => {
       localStorage.setItem(TIMELINE_KEY, index);
@@ -131,8 +145,8 @@ class Home extends Component {
   };
 
   render() {
-    const { value, fileUrl, isLoading, hasError, errorMessage } = this.state;
-    const fileName = `${VALUES[value]}.kcl`;
+    const { values, value, fileUrl, isLoading, hasError, errorMessage } = this.state;
+    const fileName = `${values[value] || 'loading'}.kcl`;
     const filePath = `/assets/${fileName}`;
 
     return (
@@ -155,26 +169,30 @@ class Home extends Component {
             </div>
             <div className="timeline-container">
               <div style={{ width: '100%', height: '60px', margin: '0 auto' }}>
-                <HorizontalTimeline
-                  values={VALUES}
-                  index={this.state.value}
-                  indexClick={this.handleTimelineClick}
-                  getLabel={(date) => new Date(date).toDateString().substring(4)}
-                  minEventPadding={20}
-                  maxEventPadding={30}
-                  linePadding={30}
-                  labelWidth={90}
-                  fillingMotion={{ stiffness: 150, damping: 25 }}
-                  slidingMotion={{ stiffness: 150, damping: 25 }}
-                  styles={{
-                    background: '#ffffff',
-                    foreground: '#000000',
-                    outline: '#d3d3d3',
-                  }}
-                  isTouchEnabled={true}
-                  isKeyboardEnabled={true}
-                  isOpenEnding={true}
-                />
+                {values.length > 0 ? (
+                  <HorizontalTimeline
+                    values={values}
+                    index={this.state.value}
+                    indexClick={this.handleTimelineClick}
+                    getLabel={(date) => new Date(date).toDateString().substring(4)}
+                    minEventPadding={20}
+                    maxEventPadding={30}
+                    linePadding={30}
+                    labelWidth={90}
+                    fillingMotion={{ stiffness: 150, damping: 25 }}
+                    slidingMotion={{ stiffness: 150, damping: 25 }}
+                    styles={{
+                      background: '#ffffff',
+                      foreground: '#000000',
+                      outline: '#d3d3d3',
+                    }}
+                    isTouchEnabled={true}
+                    isKeyboardEnabled={true}
+                    isOpenEnding={true}
+                  />
+                ) : (
+                  <div>Loading timeline...</div>
+                )}
               </div>
             </div>
           </div>
