@@ -13,7 +13,7 @@ class Home extends Component {
   codeEditorRef = createRef();
 
   state = {
-    values: [], // Dynamically populated with dates from server
+    values: [],
     value: parseInt(localStorage.getItem(TIMELINE_KEY), 10) || 0,
     fileUrl: '',
     isLoading: true,
@@ -33,10 +33,10 @@ class Home extends Component {
 
   fetchAvailableFiles = async () => {
     try {
-      const response = await fetch('http://localhost:4000/files'); // Endpoint to get available files
+      const response = await fetch('http://localhost:4000/files');
       if (!response.ok) throw new Error('Failed to fetch available files');
       const data = await response.json();
-      const files = data.files.map(file => file.replace('.glb', '')); // Remove .glb extension
+      const files = data.files.map(file => file.replace('.glb', ''));
       this.setState({ values: files }, this.loadFile);
     } catch (error) {
       console.error('Error fetching files:', error);
@@ -46,7 +46,7 @@ class Home extends Component {
 
   loadFile = async () => {
     const { values, value } = this.state;
-    if (values.length === 0) return; // Ensure values are loaded
+    if (values.length === 0) return;
     const currentDate = values[value];
     if (!currentDate) return;
 
@@ -158,8 +158,8 @@ class Home extends Component {
                 <div>Loading...</div>
               ) : hasError ? (
                 <div>
-                  <p>Failed to load 3D model: {errorMessage}</p>
-                  <button onClick={this.loadFile}>Retry</button>
+                  <p className="error-text">Failed to load 3D model: {errorMessage}</p>
+                  <button className="retry-button" onClick={this.loadFile}>Retry</button>
                 </div>
               ) : fileUrl ? (
                 <Viewer key={value} fileUrl={fileUrl} />
@@ -175,16 +175,16 @@ class Home extends Component {
                     index={this.state.value}
                     indexClick={this.handleTimelineClick}
                     getLabel={(date) => new Date(date).toDateString().substring(4)}
-                    minEventPadding={20}
-                    maxEventPadding={30}
-                    linePadding={30}
-                    labelWidth={90}
-                    fillingMotion={{ stiffness: 150, damping: 25 }}
-                    slidingMotion={{ stiffness: 150, damping: 25 }}
+                    minEventPadding={15}
+                    maxEventPadding={35}
+                    linePadding={55}
+                    labelWidth={80}
+                    fillingMotion={{ stiffness: 120, damping: 20 }}
+                    slidingMotion={{ stiffness: 120, damping: 20 }}
                     styles={{
-                      background: '#ffffff',
-                      foreground: '#000000',
-                      outline: '#d3d3d3',
+                      background: '#f9f9f9',
+                      foreground: '#333333',
+                      outline: '#bbbbbb',
                     }}
                     isTouchEnabled={true}
                     isKeyboardEnabled={true}
