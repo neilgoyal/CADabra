@@ -10,7 +10,7 @@ import {
   SendButton,
   ProfileIcon,
 } from '../ss.js';
-import { FaUserCircle, FaRobot } from 'react-icons/fa';
+import { FaUserCircle} from 'react-icons/fa';
 import { FaWandMagicSparkles } from "react-icons/fa6";
 
 

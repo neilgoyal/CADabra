@@ -215,28 +215,43 @@ def transcribe_mp3_file():
 @app.route('/kcltostep', methods=['POST'])
 def convert_kcl_to_obj():
     try:
-        kcl_file = request.files.get('kcl_file')
-        #output_dir = request.form.get('output_dir')
-        output_dir = 'step_output'
+        # Get filename from the request
+        filename = request.form.get('filename')
+        if not filename or not filename.endswith('.kcl'):
+            return jsonify({"error": "Invalid filename provided"}), 400
+        
+        # Define paths
+        base_dir = os.path.dirname(os.path.dirname(__file__))  # Base path for 'cadabra'
+        output_dir = os.path.join(base_dir, 'cadabra-vis/public/assets') 
+        output_filename = filename.replace('.kcl', '.glb')
+        generated_file_path = os.path.join(output_dir, 'output.glb')
+        final_output_file_path = os.path.join(output_dir, output_filename)
+        kcl_file_path = os.path.join(output_dir, filename)
 
-        # Save the uploaded KCL file temporarily
-        kcl_file_path = os.path.join(output_dir, kcl_file.filename)
-        kcl_file.save(kcl_file_path)
-
-        # Build the command to run in CLI
-        command = f"zoo kcl export --output-format=obj {kcl_file_path} {output_dir}"
-
-        # Run the command
+        # Run the zoo kcl export command with the output as a directory
+        command = f"zoo kcl export --output-format=glb {kcl_file_path} {output_dir}"
         process = subprocess.run(command, shell=True, capture_output=True, text=True)
 
         # Check for errors
         if process.returncode != 0:
             return jsonify({"error": process.stderr}), 400
 
-        return jsonify({"message": "Conversion successful!", "output_dir": output_dir})
+        # Rename the generated output file to match the input filename
+        if os.path.exists(generated_file_path):
+            os.rename(generated_file_path, final_output_file_path)
+        else:
+            return jsonify({"error": "Conversion file not found"}), 500
+
+        return jsonify({
+            "message": "Conversion successful!",
+            "output_dir": output_dir,
+            "output_file": output_filename
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port = 4500)
