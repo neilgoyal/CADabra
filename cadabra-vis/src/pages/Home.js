@@ -1,17 +1,10 @@
-import React, { Suspense } from 'react'
-import {Link} from "react-router-dom";
-// import { Resizable } from 're-resizable';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
-import { Component } from 'react';
+import React, { Component } from 'react';
 import HorizontalTimeline from 'react-horizontal-timeline';
 import Viewer from './Viewer';
 import { CADspace, VersionSpace, PromptSpace, HomeSpace } from '../ss';
 import Chat from './Chat';
 import CodeEditor from './CodeEditor';
 import '../App.css';
-
-
 
 const VALUES = [
   "2022-01-01",
@@ -30,6 +23,8 @@ class Home extends Component {
     value: 0,
     previous: 0,
     fileUrl: '', // Holds the URL for the current .glb file
+    isLoading: true, // New state to handle loading
+    hasError: false // New state to handle errors
   };
 
   componentDidMount() {
@@ -37,29 +32,41 @@ class Home extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // Only load a new file if the selected date changes
     if (prevState.value !== this.state.value) {
       this.loadFile();
     }
   }
 
-  // Load the .glb file based on the current value
-  loadFile = () => {
+  // Load the .glb file based on the current value with error handling
+  loadFile = async () => {
     const currentDate = VALUES[this.state.value];
-    const fileUrl = `/assets/${currentDate}.glb`; // Path to file in public/assets
-    this.setState({ fileUrl });
+    const fileUrl = `/assets/${currentDate}.glb`;
+    this.setState({ isLoading: true, hasError: false });
+
+    try {
+      // Assuming Viewer component can handle async loading
+      this.setState({ fileUrl, isLoading: false });
+    } catch (error) {
+      console.error('Failed to load .glb file:', error);
+      this.setState({ hasError: true, isLoading: false });
+    }
   };
 
   render() {
+    const { value, fileUrl, isLoading, hasError } = this.state;
+
     return (
       <HomeSpace>
-
         <CADspace>
           <div className="viewer-timeline-container">
             {/* 3D Viewer with dynamic fileUrl */}
             <div className="viewer-container">
-              {this.state.fileUrl ? (
-                <Viewer key={this.state.value} fileUrl={this.state.fileUrl} />
+              {isLoading ? (
+                <div>Loading...</div>
+              ) : hasError ? (
+                <div>Failed to load 3D model. Please try again.</div>
+              ) : fileUrl ? (
+                <Viewer key={value} fileUrl={fileUrl} />
               ) : (
                 <div>File not available for this date.</div>
               )}
@@ -73,16 +80,16 @@ class Home extends Component {
                   index={this.state.value}
                   indexClick={(index) => this.setState({ value: index, previous: this.state.value })}
                   getLabel={(date) => new Date(date).toDateString().substring(4)}
-                  minEventPadding={20}    // Increased for more spacing
-                  maxEventPadding={30}    // Increased for more spacing
-                  linePadding={30}        // Increased padding around the timeline line
-                  labelWidth={90}         // Increased label width for better readability
+                  minEventPadding={20}
+                  maxEventPadding={30}
+                  linePadding={30}
+                  labelWidth={90}
                   fillingMotion={{ stiffness: 150, damping: 25 }}
                   slidingMotion={{ stiffness: 150, damping: 25 }}
                   styles={{
                     background: '#ffffff',
-                    foreground: '#000000', // Black foreground for active elements
-                    outline: '#d3d3d3',    // Light gray outline for inactive elements
+                    foreground: '#000000',
+                    outline: '#d3d3d3',
                   }}
                   isTouchEnabled={true}
                   isKeyboardEnabled={true}
@@ -93,8 +100,8 @@ class Home extends Component {
           </div>
         </CADspace>
 
-        <VersionSpace> <CodeEditor />  </VersionSpace>
-        <PromptSpace> <Chat></Chat> </PromptSpace>
+        <VersionSpace> <CodeEditor /> </VersionSpace>
+        <PromptSpace> <Chat /> </PromptSpace>
       </HomeSpace>
     );
   }
