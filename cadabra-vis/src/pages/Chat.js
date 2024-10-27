@@ -17,6 +17,8 @@ const Chat = () => {
   const [messages, setMessages] = useState([{ text: 'Hello! How can I assist you today?', isUser: false }]);
   const [inputText, setInputText] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]); // Track attached files
+  const [firstMessageSent, setFirstMessageSent] = useState(false); // Track if first message is sent
+  const [lastKclCode, setLastKclCode] = useState(''); // Store the last kcl_code
   const fileInputRef = useRef(null);
 
   // Handle file attachment button click
@@ -63,8 +65,11 @@ const Chat = () => {
         if (endpoint === 'http://localhost:4500/stlUpload' && response.data.image_path) {
           serverMessage.imageUrl = response.data.image_path;
           serverMessage.text += ' Image generated successfully.';
+          setMessages((prev) => [...prev, serverMessage]);
         }
       } catch (error) {
+        console.error('Error:', error);
+        setMessages((prev) => [...prev, { text: 'Error uploading file.', isUser: false }]);
       }
     }
   };
@@ -77,14 +82,50 @@ const Chat = () => {
     setMessages([...messages, newMessage]);
     setInputText('');
 
+    // Show loading message
+    const loadingMessage = { text: 'Thinking...', isUser: false };
+    setMessages((prev) => [...prev, loadingMessage]);
+
     try {
+      // Determine the payload
+      let payload = {};
+      if (!firstMessageSent) {
+        payload = { prompt: inputText };
+      } else {
+        payload = { kcl_code: lastKclCode, prompt: inputText };
+      }
+
       // Send text message to the server
-      const response = await axios.post('http://localhost:4500/api/chat', { message: inputText });
-      const botReply = { text: response.data.reply, isUser: false };
-      setMessages((prev) => [...prev, botReply]);
+      const response = await axios.post('http://localhost:4500/api/chat', payload, { headers: { 'Content-Type': 'application/json' } });
+      
+      // Extract the 'llm' and 'kcl_code' from the response
+      const { llm, kcl_code } = response.data;
+
+      // Replace the loading message with the bot's reply
+      const botReply = { text: llm, isUser: false };
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = botReply;
+        return newMessages;
+      });
+
+      // Store the last kcl_code
+      if (kcl_code) {
+        setLastKclCode(kcl_code);
+      }
+
+      // Update the firstMessageSent state
+      if (!firstMessageSent) {
+        setFirstMessageSent(true);
+      }
     } catch (error) {
       console.error('Error:', error);
-      setMessages((prev) => [...prev, { text: 'Sorry, something went wrong.', isUser: false }]);
+      // Replace the loading message with an error message
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = { text: 'Sorry, something went wrong.', isUser: false };
+        return newMessages;
+      });
     }
   };
 
@@ -124,8 +165,20 @@ const Chat = () => {
           <FaPaperclip />
         </button>
         <input type="file" multiple style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileChange} />
-        <InputField type="text" placeholder="Type your message..." value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} />
-        <SendButton onClick={sendMessage}>Send</SendButton>
+        <InputField
+          type="text"
+          placeholder="Type your message..."
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && inputText.trim()) {
+              sendMessage();
+            }
+          }}
+        />
+        <SendButton onClick={sendMessage} disabled={!inputText.trim()}>
+          Send
+        </SendButton>
       </InputContainer>
     </ChatContainer>
   );
