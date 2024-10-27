@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import HorizontalTimeline from 'react-horizontal-timeline';
 import Viewer from './Viewer';
-import { CADspace, VersionSpace, PromptSpace, HomeSpace, CodePane, SaveButton, FileNameText } from '../ss';
+import { CADspace, VersionSpace, PromptSpace, HomeSpace, CodePane, SaveButton, FileNameText, SplitContainer} from '../ss';
 import Chat from './Chat';
 import CodeEditor from './CodeEditor';
 import '../App.css';
@@ -57,6 +57,15 @@ class Home extends Component {
 
     return (
       <HomeSpace>
+      <SplitContainer
+          sizes={[33, 34, 33]} // Initial sizes for CADspace, VersionSpace, PromptSpace
+          minSize={200} // Minimum size for each pane
+          gutterSize={10} // Space between panes
+          snapOffset={30}
+          dragInterval={1}
+          direction="horizontal"
+          cursor="col-resize"
+        >
         <CADspace>
           <div className="viewer-timeline-container">
             {/* 3D Viewer with dynamic fileUrl */}
@@ -109,6 +118,7 @@ class Home extends Component {
         </VersionSpace>
 
         <PromptSpace> <Chat></Chat> </PromptSpace>
+        </SplitContainer>
       </HomeSpace>
     );
   }

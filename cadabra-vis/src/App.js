@@ -12,6 +12,10 @@ const GlobalStyle = createGlobalStyle `
     padding: 0;
   }
 `
+
+
+
+
 function App() {
     return (
     <>

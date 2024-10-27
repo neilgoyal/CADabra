@@ -2,6 +2,8 @@ import styled, {css } from "styled-components";
 import grid from "./assets/grid.jpg" ;
 import wavyGrid from "./assets/wavyGrid.jpg" ;
 import { Color } from "three";
+import Split from 'react-split';
+
 
 export const Colors = {
     beige: '#F8F7F6',
@@ -54,11 +56,12 @@ export const NavSpace = styled.div `
 
 export const HomeSpace = styled.div `
     display: flex ;
+    flex: 1; 
     flex-direction: ${(props) => props.direc? props.direc: 'row' };
     background-color: ${(props) => props.color? props.color: Colors.grey1 };
     align-items: center;
     text-align: left;
-    height: 60%;
+    height: 100%;
     width: 100%;
     position: relative;
 
@@ -66,6 +69,7 @@ export const HomeSpace = styled.div `
 
 export const CADspace = styled.div `
     display: flex ;
+    flex: 1; 
     flex-direction: ${(props) => props.direc? props.direc: 'column' };
     background-color: ${(props) => props.color? props.color: Colors.white };
     align-items: center;
@@ -79,6 +83,7 @@ export const CADspace = styled.div `
 
 export const VersionSpace = styled.div `
     display: flex ;
+    flex: 1; 
     flex-direction: ${(props) => props.direc? props.direc: 'column' };
     background-color: ${(props) => props.color? props.color: Colors.grey3 };
     align-items: center;
@@ -90,6 +95,7 @@ export const VersionSpace = styled.div `
 
 export const PromptSpace = styled.div `
     display: flex ;
+    flex: 1; 
     flex-direction: ${(props) => props.direc? props.direc: 'column' };
     background-color: ${(props) => props.color? props.color: Colors.grey4 };
     align-items: center;
@@ -139,6 +145,7 @@ export const SkillGrid = styled.div `
     height: 20vh;   
     width: 100%;
 `
+
 
 export const SingleSkill = styled.div `
    
@@ -381,3 +388,58 @@ export const FileNameText = styled.text `
   color: ${Colors.white};
   font-size: 18px;
 `
+
+export const SplitContainer = styled(Split)`
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+`;
+
+// In ../ss.js
+
+// Attachment Button
+export const AttachButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 30px;
+  color: #555;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: #000;
+  }
+`;
+
+// Attached Files Preview
+export const AttachedFilesContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  max-height: 100px;
+  overflow-y: auto;
+  margin-left: 8px;
+`;
+
+export const AttachedFile = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+`;
+
+export const RemoveFileButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e74c3c;
+  font-size: 16px;
+  margin-left: 8px;
+
+  &:hover {
+    color: #c0392b;
+  }
+`;
+
+
+
