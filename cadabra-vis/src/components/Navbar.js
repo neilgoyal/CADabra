@@ -17,7 +17,7 @@ function Navbar() {
     <Text1>
         <Logo src={hat} alt="logo" />
         <LinkStyle href = "/">
-        cadabra
+        CADabra
         </LinkStyle>
       </Text1>
     

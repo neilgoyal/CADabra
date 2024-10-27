@@ -1,5 +1,5 @@
-/chrome 
-/firstpart
-/app
-/generateCAD
-/STL2Images
+chrome/ 
+firstpart/
+app/
+generateCAD/
+STL2Image/

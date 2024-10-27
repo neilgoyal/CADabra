@@ -1,6 +1,7 @@
 import styled, {css } from "styled-components";
 import grid from "./assets/grid.jpg" ;
 import wavyGrid from "./assets/wavyGrid.jpg" ;
+import { Color } from "three";
 
 export const Colors = {
     beige: '#F8F7F6',
@@ -57,7 +58,7 @@ export const HomeSpace = styled.div `
     background-color: ${(props) => props.color? props.color: Colors.grey1 };
     align-items: center;
     text-align: left;
-    height: 100vh;
+    height: 60%;
     width: 100%;
     position: relative;
 
@@ -116,62 +117,7 @@ export const Logo = styled.img `
   margin-right: 8px; /* Adds spacing between the logo and the text */
 `;
 
-// export const MainSpace = styled.div `
-//     display: flex ;
-//     gap: 0px;
-//     flex-direction: ${(props) => props.direc? props.direc: 'column' };
-//     background-color: ${(props) => props.color? props.color: Colors.black };
-//     align-items: center;
-//     text-align: left;
-//     //justify-content: center; --> vertical
-//     height: 210vh;
-//     width: 100%; 
-//     position: relative;
-//     top: 0px;
-// `
-// export const Space2 = styled.div `
-//     display: flex ;
-//     flex-direction: ${(props) => props.direc? props.direc: 'row' };
-//     align-items: center;
-//     background-color: ${(props) => props.color? props.color: Colors.black };
-//     padding: 10px;
-//     vertical-align: middle;
-//     height: 150px;
-//     width: 500px;
-//     justify-content: center;
-    
-// `
 
-
-// export const Space3 = styled.div `
-//     display: flex ;
-//     overflow: auto;
-//     flex-direction: ${(props) => props.direc? props.direc: 'row' };
-//     align-items: center;
-//     background-color: ${(props) => props.color? props.color: Colors.black };
-//     padding: 10px;
-//     vertical-align: middle;
-//     //height: 40vh;
-//     justify-content: center;
-
-// `
-
-// export const Space4 = styled.div `
-//     display: flex ;
-//     grid-gap: 2px;
-//     padding-top: 12px;
-//     padding-bottom: 15px;
-//     //position: relative;
-//     //overflow: auto;
-//     flex-direction: ${(props) => props.direc? props.direc: 'column' };
-//     align-items: center;
-//     background-color: ${(props) => props.color? props.color: Colors.black };
-//     padding: 10px;
-//     vertical-align: middle;
-//     width: 80%;
-//     //height: 100vh;
-//     justify-content: space-evenly;
-// `
 
 
 export const SkillGrid = styled.div `
@@ -311,3 +257,107 @@ export const LinkStyle = styled.a `
     // marginTop: '400px';
     // position: 'absolute';
 `
+
+export const ChatContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+`;
+
+export const MessagesContainer = styled.div`
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const MessageRow = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: ${({ isUser }) => (isUser ? 'flex-end' : 'flex-start')};
+  margin: 8px 0;
+`;
+
+
+export const ProfileIcon = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: ${({ isUser }) => (isUser ? '0 0 0 10px' : '0 10px 0 0')};
+`;
+
+export const MessageBubble = styled.div`
+  background-color: ${({ isUser }) => (isUser ? Colors.grey1 :Colors.white)};
+  color: ${Colors.grey4}; /* White text for better contrast */
+  padding: 20px 28px;
+  border-radius: 20px;
+  max-width: 85%;
+  word-wrap: break-word;
+  margin: ${({ isUser }) => (isUser ? '0 14px 0 0' : '0 0 0 14px')};
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+`;
+
+
+export const InputContainer = styled.div`
+  display: flex;
+  padding: 10px;
+  height: 5%; 
+  width: 100%;
+  border-top: 1px solid #ccc;
+  background-color: #fff;
+`;
+
+export const InputField = styled.input`
+  flex-grow: 1;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+`;
+
+export const SendButton = styled.button`
+  margin-left: 10px;
+  padding: 12px 18px;
+  font-size: 16px;
+  background-color: ${Colors.grey2};
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    background-color: ${Colors.grey4};
+  }
+`;
+
+
+export const EditorContainer = styled.div`
+  position: relative;
+  height: 100%;
+  width: 100%;
+`;
+
+export const SaveButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #3498db;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1;
+
+  &:hover {
+    background-color: #2980b9;
+  }
+`;
