@@ -3,8 +3,6 @@ import Navbar from "./components/Navbar";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Home from "./pages/Home.js"
 import * as React from 'react';
-import TechForGood from './pages/TechForGood'; 
-import Projects from './pages/Projects'; 
 
 import { createGlobalStyle } from 'styled-components'
 
@@ -23,8 +21,6 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" exact element= {<Home/>}/>
-          <Route path="/techforgood" exact element= {<TechForGood/>}/>
-          <Route path="/projects" exact element= {<Projects/>}/>
         </Routes>
       </Router>
     </>
