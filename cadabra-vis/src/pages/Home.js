@@ -6,7 +6,7 @@ import { OrbitControls, useGLTF } from '@react-three/drei';
 import { Component } from 'react';
 import HorizontalTimeline from 'react-horizontal-timeline';
 import Viewer from './Viewer';
-import { CADspace, VersionSpace, PromptSpace, HomeSpace } from '../ss';
+import { CADspace, VersionSpace, PromptSpace, HomeSpace, CodePane, SaveButton, FileNameText } from '../ss';
 import Chat from './Chat';
 import CodeEditor from './CodeEditor';
 import '../App.css';
@@ -99,7 +99,14 @@ class Home extends Component {
           </div>
         </CADspace>
 
-        <VersionSpace> <CodeEditor />  </VersionSpace>
+        <VersionSpace> 
+          <CodePane>
+            <FileNameText>sample.kcl</FileNameText>
+            <SaveButton>save</SaveButton>
+          </CodePane>
+          <CodeEditor /> 
+        </VersionSpace>
+
         <PromptSpace> <Chat></Chat> </PromptSpace>
       </HomeSpace>
     );

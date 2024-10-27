@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
+import { SaveButton } from '../ss';
 
 const CodeEditor = () => {
   const [code, setCode] = useState('');
@@ -142,6 +143,7 @@ const CodeEditor = () => {
   }, [schemas]);
 
   return (
+    <>
     <Editor
       height="100%"
       width="100%"
@@ -158,6 +160,7 @@ const CodeEditor = () => {
         scrollBeyondLastLine: false,
       }}
     />
+    </>
   );
 };
 

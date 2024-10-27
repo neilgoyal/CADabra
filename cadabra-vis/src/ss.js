@@ -350,14 +350,34 @@ export const SaveButton = styled.button`
   right: 10px;
   padding: 8px 12px;
   font-size: 14px;
-  background-color: #3498db;
-  color: #FFFFFF;
+  background-color: ${Colors.white};
+  
+  color: #000;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   z-index: 1;
 
   &:hover {
-    background-color: #2980b9;
+    background-color:${Colors.grey4};
+    color: #FFFFFF;
   }
 `;
+
+
+
+export const CodePane = styled.div`
+  display: flex;
+  /* align-items: flex-end; */
+  flex-direction: column;
+  height: 60px; 
+  color: ${Colors.black};
+  align-items: space-between; 
+`;
+
+export const FileNameText = styled.text `
+  padding: 22px;
+  font-family: 'Courier New', Courier, monospace;
+  color: ${Colors.white};
+  font-size: 18px;
+`
