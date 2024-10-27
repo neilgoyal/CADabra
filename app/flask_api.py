@@ -3,6 +3,7 @@ from flask_cors import CORS
 import asyncio
 from kittycad_api import *
 from multimodal_to_text import *
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -54,25 +55,40 @@ def text_to_cad():
 
     # Run the asynchronous CAD generation function
     body = asyncio.run(simple_text_to_cad(prompt))
+    
+    
+    
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # Root directory
+    OUTPUT_DIR = os.path.join(BASE_DIR, "cadabra-vis/public/assets") 
+    
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    kcl_filename = os.path.join(OUTPUT_DIR, f"{date_str}.kcl")
+    glb_filename = os.path.join(OUTPUT_DIR, f"{date_str}.glb")
 
-    # Return the result as JSON
-    # Need to return body.code and cad_outputs/source.glb
-    kcl_code = str(body.code)
-    glb_file_path = os.path.join(OG_CAD_DIR, "source.glb")
-    if os.path.exists(glb_file_path):
-        with open(glb_file_path, "rb") as glb_file:
-            source_glb_content = glb_file.read()
+    # Write the KCL code to a file
+    with open(kcl_filename, "w") as kcl_file:
+        kcl_file.write(str(body.code))
+
+    # Path to the source GLB file
+    source_glb_path = os.path.join(OG_CAD_DIR, "source.glb")
+
+    # Copy and encode the GLB file content
+    if os.path.exists(source_glb_path):
+        with open(source_glb_path, "rb") as source_glb:
+            source_glb_content = source_glb.read()
+        
+        # Save to glb_filename
+        with open(glb_filename, "wb") as glb_file:
+            glb_file.write(source_glb_content)
+
+        # Encode the GLB content for JSON response
+        encoded_glb_content = base64.b64encode(source_glb_content).decode("utf-8")
     else:
         return jsonify({"error": "GLB file not found"}), 404
 
-    # Encode the GLB content in base64 for JSON compatibility
-    import base64
-
-    encoded_glb_content = base64.b64encode(source_glb_content).decode("utf-8")
-
     # Return the result as JSON
     response_data = {
-        "kcl_code": kcl_code,
+        "kcl_code": body.code,
         "source_glb": encoded_glb_content,
         "llm": multimodal_prompt["object_created"],
     }
@@ -103,6 +119,12 @@ def kcl_editing():
             ),
             400,
         )
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # Root directory
+    OUTPUT_DIR = os.path.join(BASE_DIR, "cadabra-vis/public/assets") 
+    
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    kcl_filename = os.path.join(OUTPUT_DIR, f"{date_str}.kcl")
+    glb_filename = os.path.join(OUTPUT_DIR, f"{date_str}.glb")
 
     # Attempt to retrieve "prompt" from the parsed data
     kcl_code = data.get("kcl_code")
@@ -111,28 +133,41 @@ def kcl_editing():
         return jsonify({"error": "Missing args in request"}), 400
 
     # Run the asynchronous CAD generation function
-    final_code, llm = generate_and_fix_kcl_code(kcl_code, prompt)
+    (final_code, llm_output) = generate_and_fix_kcl_code(kcl_code, prompt)
 
     # Return the result as JSON
     # Need to return body.code and cad_outputs/source.glb
     kcl_code = str(final_code)
+    
+    with open(kcl_filename, "w") as kcl_file:
+        kcl_file.write(kcl_code)
+        
+        
     glb_file_path = os.path.join(TEMP_KCL_FOLDER, "output.glb")
+    
+    
+    
+
+
+    # Copy and encode the GLB file content
     if os.path.exists(glb_file_path):
-        with open(glb_file_path, "rb") as glb_file:
-            source_glb_content = glb_file.read()
+        with open(glb_file_path, "rb") as source_glb:
+            source_glb_content = source_glb.read()
+        
+        # Save to glb_filename
+        with open(glb_filename, "wb") as glb_file:
+            glb_file.write(source_glb_content)
+
+        # Encode the GLB content for JSON response
+        encoded_glb_content = base64.b64encode(source_glb_content).decode("utf-8")
     else:
         return jsonify({"error": "GLB file not found"}), 404
-
-    # Encode the GLB content in base64 for JSON compatibility
-    import base64
-
-    encoded_glb_content = base64.b64encode(source_glb_content).decode("utf-8")
 
     # Return the result as JSON
     response_data = {
         "kcl_code": kcl_code,
         "source_glb": encoded_glb_content,
-        "llm": llm,
+        "llm": llm_output,
     }
 
     return jsonify(response_data)

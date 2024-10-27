@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import {
   ChatContainer,
@@ -13,20 +13,50 @@ import {
 import { FaUserCircle, FaPaperclip } from 'react-icons/fa';
 import { FaWandMagicSparkles } from "react-icons/fa6";
 
+const MESSAGES_KEY = 'chat_messages';
+const LAST_KCL_CODE_KEY = 'last_kcl_code';
+
 const Chat = () => {
   const [messages, setMessages] = useState([{ text: 'Hello! How can I assist you today?', isUser: false }]);
   const [inputText, setInputText] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]); // Track attached files
-  const [firstMessageSent, setFirstMessageSent] = useState(false); // Track if first message is sent
+  const [firstMessageSent, setFirstMessageSent] = useState(false); // Track if the first message is sent
   const [lastKclCode, setLastKclCode] = useState(''); // Store the last kcl_code
   const fileInputRef = useRef(null);
+
+  // Load messages and lastKclCode from localStorage on mount
+  useEffect(() => {
+    const savedMessages = JSON.parse(localStorage.getItem(MESSAGES_KEY));
+    if (savedMessages) {
+      setMessages(savedMessages);
+      // Check if a message has already been sent
+      setFirstMessageSent(savedMessages.some(msg => msg.isUser));
+    }
+
+    const savedKclCode = localStorage.getItem(LAST_KCL_CODE_KEY);
+    if (savedKclCode) {
+      setLastKclCode(savedKclCode);
+    }
+  }, []);
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+  }, [messages]);
+
+  // Persist lastKclCode to localStorage whenever it changes
+  useEffect(() => {
+    if (lastKclCode) {
+      localStorage.setItem(LAST_KCL_CODE_KEY, lastKclCode);
+    }
+  }, [lastKclCode]);
 
   // Handle file attachment button click
   const handleAttachClick = () => {
     fileInputRef.current.click();
   };
 
-  // Handle file selection and automatically upload files
+  // Handle file selection and automatically upload files to server on port 4500
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     setAttachedFiles((prev) => [...prev, ...files]); // Add files to attached files list
@@ -74,7 +104,7 @@ const Chat = () => {
     }
   };
 
-  // Function to send text messages only
+  // Function to send text messages, calling appropriate endpoint based on firstMessageSent
   const sendMessage = async () => {
     if (!inputText.trim()) return; // Prevent sending empty messages
 
@@ -87,19 +117,15 @@ const Chat = () => {
     setMessages((prev) => [...prev, loadingMessage]);
 
     try {
-      // Determine the payload
-      let payload = {};
-      if (!firstMessageSent) {
-        payload = { prompt: inputText };
-      } else {
-        payload = { kcl_code: lastKclCode, prompt: inputText };
-      }
+      // Determine the endpoint and payload based on the first message flag
+      const endpoint = firstMessageSent ? 'http://127.0.0.1:5000/api/kcl_editing' : 'http://127.0.0.1:5000/api/text_to_cad';
+      const payload = firstMessageSent ? { kcl_code: lastKclCode, prompt: inputText } : { prompt: inputText };
 
-      // Send text message to the server
-      const response = await axios.post('http://localhost:4500/api/chat', payload, { headers: { 'Content-Type': 'application/json' } });
+      // Send request to the appropriate endpoint on port 5000
+      const response = await axios.post(endpoint, payload, { headers: { 'Content-Type': 'application/json' } });
       
-      // Extract the 'llm' and 'kcl_code' from the response
-      const { llm, kcl_code } = response.data;
+      // Extract the 'llm' (response text) and 'kcl_code' from the response
+      const { kcl_code, source_glb, llm } = response.data;
 
       // Replace the loading message with the bot's reply
       const botReply = { text: llm, isUser: false };
@@ -109,12 +135,12 @@ const Chat = () => {
         return newMessages;
       });
 
-      // Store the last kcl_code
+      // Store the last kcl_code and persist it
       if (kcl_code) {
         setLastKclCode(kcl_code);
       }
 
-      // Update the firstMessageSent state
+      // Update the firstMessageSent flag
       if (!firstMessageSent) {
         setFirstMessageSent(true);
       }
