@@ -1,39 +1,32 @@
-
 export const kittyCadLanguage = {
   id: 'kittyCad',
 
-  // Define the tokenizer
+  // Define the tokenizer as an object
   tokenizer: {
     root: [
-      [/[a-z_$][\w$]*/, {
-        cases: {
-          '@keywords': 'keyword',
-          '@default': 'identifier'
-        }
-      }],
-      [/[{}()\[\]]/, '@brackets'],
-      [/[<>](?!@symbols)/, '@brackets'],
-      [/[^#\s]+/, 'string'],
-      [/#.*$/, 'comment'],
+      [
+        /[a-z_$][\w$]*/, 
+        {
+          cases: {
+            '@keywords': 'keyword', // Matches defined keywords
+            '@default': 'identifier',
+          },
+        },
+      ],
+      [/[{}()\[\]]/, '@brackets'], // Brackets to handle grouping symbols
+      [/[<>](?!@symbols)/, '@brackets'], // Angular brackets for symbols
+      [/[^#\s]+/, 'string'], // Strings not preceded by '#' or whitespace
+      [/#.*$/, 'comment'], // Comment pattern with '#'
     ],
   },
 
   // Define keywords
   keywords: [
-    'define',
-    'function',
-    'return',
-    'if',
-    'else',
-    'for',
-    'while',
-    'break',
-    'continue',
-    // Add more keywords as per your language
+    'define', 'function', 'return', 'if', 'else', 'for', 'while', 'break', 'continue'
   ],
 
-  // Define brackets
-  brackets: [
+  // Use 'bracket' to handle pairs
+  bracket: [
     ['{', '}'],
     ['[', ']'],
     ['(', ')'],
@@ -47,7 +40,7 @@ export const kittyCadLanguage = {
     lineComment: '#',
   },
 
-  // Define auto closing pairs
+  // Define auto-closing and surrounding pairs
   autoClosingPairs: [
     { open: '{', close: '}' },
     { open: '[', close: ']' },
@@ -55,8 +48,6 @@ export const kittyCadLanguage = {
     { open: '"', close: '"' },
     { open: "'", close: "'" },
   ],
-
-  // Define surrounding pairs
   surroundingPairs: [
     { open: '{', close: '}' },
     { open: '[', close: ']' },
@@ -65,3 +56,4 @@ export const kittyCadLanguage = {
     { open: "'", close: "'" },
   ],
 };
+

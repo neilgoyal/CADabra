@@ -1,224 +1,106 @@
-// src/components/CodeEditor.js
-
 import React, { useState, useEffect } from 'react';
-import Editor, { useMonaco } from '@monaco-editor/react';
-import axios from 'axios';
-import { EditorContainer, SaveButton } from '../ss.js';
-import { kittyCadLanguage } from './kittyCadLanguage.js';
+import Editor from '@monaco-editor/react';
 
 const CodeEditor = () => {
   const [code, setCode] = useState('');
-  const [language, setLanguage] = useState('kittyCad');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const monaco = useMonaco();
+  const [schemas, setSchemas] = useState([]);
 
-  // Register the custom language and define the theme
-  useEffect(() => {
-    if (monaco) {
-      // Register the language
-      if (!monaco.languages.getLanguages().some(lang => lang.id === 'kittyCad')) {
-        monaco.languages.register(kittyCadLanguage);
+  // Setup Monaco configurations before mount
+  const handleBeforeMount = (monaco) => {
+    // Register language if not already registered
+    if (!monaco.languages.getLanguages().some(lang => lang.id === 'kittyCad')) {
+      monaco.languages.register({ id: 'kittyCad' });
 
-        // Set the language's tokenizer
-        monaco.languages.setMonarchTokensProvider('kittyCad', kittyCadLanguage.tokenizer);
-
-        // Set the language configuration
-        monaco.languages.setLanguageConfiguration('kittyCad', kittyCadLanguage.languageConfiguration);
-
-        // Define a custom theme
-        monaco.editor.defineTheme('kittyCadTheme', {
-          base: 'vs-dark',
-          inherit: true,
-          rules: [
-            { token: 'keyword', foreground: 'C586C0', fontStyle: 'bold' },
-            { token: 'operator', foreground: 'D4D4D4' },
-            { token: 'number', foreground: 'B5CEA8' },
-            { token: 'string', foreground: 'CE9178' },
-            { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
-            { token: 'identifier', foreground: '9CDCFE' },
-            { token: 'brackets', foreground: 'D4D4D4' },
+      // Define the tokenizer
+      monaco.languages.setMonarchTokensProvider('kittyCad', {
+        tokenizer: {
+          root: [
+            [/\b(if|else|for|while|return)\b/, 'keyword'],
+            [/\b\d+\b/, 'number'],
+            [/[{}()\[\]]/, '@brackets'],
+            [/"[^"]*"/, 'string'],
+            [/'[^']*'/, 'string'],
+            [/#.*$/, 'comment'],
           ],
-          colors: {
-            'editor.background': '#1E1E1E',
-          },
-        });
+        },
+      });
 
-        // Apply the theme
-        monaco.editor.setTheme('kittyCadTheme');
-      }
+      // Define the theme
+      monaco.editor.defineTheme('kittyCadTheme', {
+        base: 'vs-dark',
+        inherit: false,
+        rules: [
+          { token: 'keyword', foreground: 'C586C0', fontStyle: 'bold' },
+          { token: 'number', foreground: 'B5CEA8' },
+          { token: 'string', foreground: 'CE9178' },
+          { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
+          { token: 'brackets', foreground: 'D4D4D4' },
+        ],
+        colors: {
+          'editor.background': '#1E1E1E',
+        },
+      });
     }
-  }, [monaco]);
+  };
 
-  // Fetch the code from the backend when the component mounts
+  // Load content from my-file.kcl and update schemas when dependencies change
   useEffect(() => {
-    const fetchCode = async () => {
+    // Load file content from assets
+    const loadFileContent = async () => {
       try {
-        const response = await axios.get('/api/codefile');
-        setCode(response.data.code);
-        setLanguage(response.data.language || 'kittyCad');
+        const response = await fetch('/assets/my-file.kcl');
+        if (response.ok) {
+          const text = await response.text();
+          setCode(text); // Set loaded content as the initial editor value
+        } else {
+          console.error('Failed to load file: ', response.statusText);
+        }
       } catch (error) {
-        console.error('Error fetching code:', error);
-        alert('Failed to load code.');
-      } finally {
-        setIsLoading(false);
+        console.error('Error loading file:', error);
       }
     };
 
-    fetchCode();
-  }, []);
+    loadFileContent();
 
-  // Handle changes in the editor
-  const handleEditorChange = (value) => {
-    setCode(value);
-  };
+    // Fetch schemas if applicable
+    const fetchSchemas = async () => {
+      const newSchemas = await fetchSchemasFromSource();
+      setSchemas(newSchemas);
+    };
 
-  // Handle saving the code
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      await axios.post('/api/codefile', { code });
-      alert('Code saved successfully!');
-    } catch (error) {
-      console.error('Error saving code:', error);
-      alert('Failed to save code.');
-    } finally {
-      setIsSaving(false);
+    fetchSchemas();
+
+    if (schemas.length) {
+      console.log("Schemas updated:", schemas);
     }
-  };
+  }, [schemas]); // Add dependencies as needed
 
   return (
-    <EditorContainer>
-      <SaveButton onClick={handleSave} disabled={isSaving || isLoading}>
-        {isSaving ? 'Saving...' : 'Save'}
-      </SaveButton>
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : (
-        <Editor
-          height="100%"
-          width="100%"
-          language={language}
-          value={code}
-          onChange={handleEditorChange}
-          theme="kittyCadTheme"
-          options={{
-            fontSize: 16,
-            minimap: { enabled: false },
-            automaticLayout: true,
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-          }}
-        />
-      )}
-    </EditorContainer>
+    <Editor
+      height="100%"
+      width="100%"
+      language="kittyCad"
+      theme="kittyCadTheme"
+      value={code}
+      onChange={setCode}
+      beforeMount={handleBeforeMount}
+      options={{
+        fontSize: 16,
+        minimap: { enabled: false },
+        automaticLayout: true,
+        lineNumbers: 'on',
+        scrollBeyondLastLine: false,
+      }}
+    />
   );
 };
 
+// Example async function to fetch schemas (this could come from an API or other source)
+async function fetchSchemasFromSource() {
+  // Placeholder example of schema data
+  return [
+    { uri: 'http://my-schema/kittyCad', schema: { /* define schema properties here */ } }
+  ];
+}
+
 export default CodeEditor;
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import Editor from '@monaco-editor/react';
-// import axios from 'axios';
-// import { EditorContainer, SaveButton } from '../ss.js';
-
-// const CodeEditor = () => {
-//   const [code, setCode] = useState('');
-//   const [isSaving, setIsSaving] = useState(false);
-
-//   useEffect(() => {
-//     // Fetch the code from the backend
-//     const fetchCode = async () => {
-//       try {
-//         const response = await axios.get('/api/codefile');
-//         setCode(response.data.code);
-//       } catch (error) {
-//         console.error('Error fetching code:', error);
-//         alert('Failed to load code.');
-//       }
-//     };
-
-//     fetchCode();
-//   }, []);
-
-//   const handleEditorChange = (value) => {
-//     setCode(value);
-//   };
-
-//   const handleSave = async () => {
-//     setIsSaving(true);
-//     try {
-//       await axios.post('/api/codefile', { code });
-//       alert('Code saved successfully!');
-//     } catch (error) {
-//       console.error('Error saving code:', error);
-//       alert('Failed to save code.');
-//     } finally {
-//       setIsSaving(false);
-//     }
-//   };
-
-//   const handleEditorWillMount = (monaco) => {
-//     // Register a new language
-//     monaco.languages.register({ id: 'kittycad' });
-
-//     // Define the language's syntax
-//     monaco.languages.setMonarchTokensProvider('kittycad', {
-//       tokenizer: {
-//         root: [
-//           // Define syntax rules here
-//           [/\b(if|else|for|while|return)\b/, 'keyword'],
-//           [/[a-z_$][\w$]*/, 'identifier'],
-//           [/\d+/, 'number'],
-//           [/[{}()\[\]]/, '@brackets'],
-//           [/[;,.]/, 'delimiter'],
-//           [/".*?"/, 'string'],
-//           [/'[^']*'/, 'string'],
-//           [/#.*/, 'comment'],
-//         ],
-//       },
-//     });
-
-//     // Optionally set language configuration
-//     monaco.languages.setLanguageConfiguration('kittycad', {
-//       comments: {
-//         lineComment: '#',
-//       },
-//       brackets: [
-//         ['{', '}'],
-//         ['[', ']'],
-//         ['(', ')'],
-//       ],
-//       autoClosingPairs: [
-//         { open: '{', close: '}' },
-//         { open: '[', close: ']' },
-//         { open: '(', close: ')' },
-//         { open: '"', close: '"' },
-//         { open: "'", close: "'" },
-//       ],
-//     });
-//   };
-
-//   return (
-//     <EditorContainer>
-//       <SaveButton onClick={handleSave} disabled={isSaving}>
-//         {isSaving ? 'Saving...' : 'Save'}
-//       </SaveButton>
-//       <Editor
-//         height="100%"
-//         width="100%"
-//         defaultLanguage="kittycad"
-//         value={code}
-//         onChange={handleEditorChange}
-//         theme="vs-dark"
-//         beforeMount={handleEditorWillMount} // Use beforeMount to register language
-//         options={{ fontSize: 14 }}
-//       />
-//     </EditorContainer>
-//   );
-// };
-
-// export default CodeEditor;
