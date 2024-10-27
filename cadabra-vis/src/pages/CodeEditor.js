@@ -10,21 +10,67 @@ const CodeEditor = () => {
     if (!monaco.languages.getLanguages().some(lang => lang.id === 'kittyCad')) {
       monaco.languages.register({ id: 'kittyCad' });
 
-      // Define the tokenizer
       monaco.languages.setMonarchTokensProvider('kittyCad', {
         tokenizer: {
           root: [
             [/\b(if|else|for|while|return)\b/, 'keyword'],
             [/\b\d+\b/, 'number'],
             [/[{}()\[\]]/, '@brackets'],
+            [/[=+\-*/%<>!]+/, 'operator'], // Define operators
+            [/\b\w+\b(?=\()/, 'function'], // Function names before '('
+            [/\b\w+\b/, 'variable'], // Variables
             [/"[^"]*"/, 'string'],
             [/'[^']*'/, 'string'],
-            [/#.*$/, 'comment'],
+            [/#.*$/, 'comment'], // '#' comments
+            [/\/\/.*$/, 'comment'], // '//' comments
           ],
         },
       });
 
+      
+      // // Define the tokenizer
+      // monaco.languages.setMonarchTokensProvider('kittyCad', {
+      //   tokenizer: {
+      //     root: [
+      //       [/\b(if|else|for|while|return)\b/, 'keyword'],
+      //       [/\b\d+\b/, 'number'],
+      //       [/[{}()\[\]]/, '@brackets'],
+      //       [/"[^"]*"/, 'string'],
+      //       [/'[^']*'/, 'string'],
+      //       [/#.*$/, 'comment'],
+      //     ],
+      //   },
+      // });
+
       // Define the theme
+      // monaco.editor.defineTheme('kittyCadTheme', {
+      //   base: 'vs-dark',
+      //   inherit: false,
+      //   rules: [
+      //     { token: 'keyword', foreground: 'C586C0', fontStyle: 'bold' },
+      //     { token: 'number', foreground: 'B5CEA8' },
+      //     { token: 'string', foreground: 'CE9178' },
+      //     { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
+      //     { token: 'bracket', foreground: 'D4D4D4' },
+      //   ],
+      //   colors: {
+      //     'editor.background': '#1E1E1E',
+      //     'editor.foreground': '#D4D4D4',
+      //     'editorCursor.foreground': '#AEAFAD',
+      //     'editor.lineHighlightBackground': '#2A2D2E',
+      //     'editorLineNumber.foreground': '#858585',
+      //     'editor.selectionBackground': '#264F78',
+      //     'editor.inactiveSelectionBackground': '#3A3D41',
+      //     'editorBracketMatch.background': '#264F78',
+      //     'editorBracketMatch.border': '#C586C0',
+      //     'editorWhitespace.foreground': '#404040',
+      //     'editorIndentGuide.background': '#404040',
+      //     'editorIndentGuide.activeBackground': '#707070',
+
+      //   },
+      // });
+
+      // In CodeEditor.js, update the theme rules
       monaco.editor.defineTheme('kittyCadTheme', {
         base: 'vs-dark',
         inherit: false,
@@ -34,11 +80,33 @@ const CodeEditor = () => {
           { token: 'string', foreground: 'CE9178' },
           { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
           { token: 'brackets', foreground: 'D4D4D4' },
+          { token: 'operator', foreground: 'D4D4D4' },
+          { token: 'function', foreground: 'DCDCAA' },
+          { token: 'variable', foreground: '9CDCFE' },
+          { token: 'identifier', foreground: 'FFFFFF' }, // Add this line
         ],
         colors: {
           'editor.background': '#1E1E1E',
+          'editor.foreground': '#D4D4D4',
+          'editorCursor.foreground': '#AEAFAD',
+          'editor.lineHighlightBackground': '#2A2D2E',
+          'editorLineNumber.foreground': '#858585',
+          'editor.selectionBackground': '#264F78',
+          'editor.inactiveSelectionBackground': '#3A3D41',
+          'editorBracketMatch.background': '#264F78',
+          'editorBracketMatch.border': '#C586C0',
+          'editorWhitespace.foreground': '#404040',
+          'editorIndentGuide.background': '#404040',
+          'editorIndentGuide.activeBackground': '#707070',
         },
       });
+
+      monaco.editor.setTheme('kittyCadTheme');
+      
+
+
+    
+
     }
   };
 

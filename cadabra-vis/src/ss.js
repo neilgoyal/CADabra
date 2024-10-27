@@ -84,7 +84,7 @@ export const VersionSpace = styled.div `
     align-items: center;
     text-align: left;
     height: 100vh;
-    width: 40%;
+    width: 50%;
     position: relative;
 `
 
