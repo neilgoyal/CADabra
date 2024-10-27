@@ -253,6 +253,58 @@ def kcl_code_updater(kcl_code: str, prompt: str) -> Optional[str]:
         return None
 
 
+def kcl_code_merger(kcl_code_1: str, kcl_code_2: str) -> Optional[str]:
+    """
+    Merges two nearly identical KCL code blocks by identifying and combining unique elements,
+    ensuring adherence to KittyCAD format conventions.
+
+    :param kcl_code_1: The first KCL code block as a string.
+    :param kcl_code_2: The second KCL code block as a string.
+    :return: The merged KCL code as a string, or None if an error occurs.
+    """
+    try:
+        # Construct the messages for the chat completion
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert in the KittyCAD language, used to create CAD designs."
+                    "Your task is to merge two nearly identical KittyCAD code blocks, combining any unique"
+                    "elements where they differ. Ensure that the merged code adheres to KittyCAD format conventions"
+                    "and that the final output is valid and syntactically correct KittyCAD code."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Here are two KittyCAD language code blocks:\n\n"
+                    f"First code block:\n```kcl\n{kcl_code_1}\n```\n\n"
+                    f"Second code block:\n```kcl\n{kcl_code_2}\n```\n\n"
+                    "Please merge these code blocks by combining their differences and ensuring the merged result"
+                    "is a valid, comprehensive, and syntactically correct KittyCAD language code. DO NOT LOSE THE"
+                    "ORIGINAL STRUCTURE OF THIS CAD OBJECT, and ensure decimal points do not end with zero (e.g., 1.5, not 1.50)."
+                    "Return only the merged code without additional explanations."
+                ),
+            },
+        ]
+        # Make the API call to OpenAI's ChatCompletion endpoint
+        response = response = client.beta.chat.completions.parse(
+            model="ft:gpt-4o-2024-08-06:personal::AMbJgbdO",
+            messages=messages,
+            temperature=0,
+            response_format=KCLCode,
+        )
+
+        simplified_prompt = json.loads(response.choices[0].message.content.strip())
+        # Return the simplified prompt as structured JSON
+        return simplified_prompt["updated_kcl_code"]
+        # Verify that KCL works if not loop
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
 import tempfile
 import subprocess
 import re
@@ -349,6 +401,61 @@ def generate_and_fix_kcl_code(
 
     print("Failed to generate lint-free KCL code after maximum retries.")
     return kcl_code
+
+
+def merge_and_fix_kcl_code(
+    kcl_code_1: str, kcl_code_2: str, max_retries: int = 10
+) -> Optional[str]:
+    """
+    Merges two KCL code blocks, combining unique elements where they differ.
+    Attempts to fix any linting errors and retries up to max_retries times if errors persist.
+
+    :param kcl_code_1: The first KCL code block as a string.
+    :param kcl_code_2: The second KCL code block as a string.
+    :param max_retries: The maximum number of retries for fixing linting errors.
+    :return: The lint-free merged KCL code as a string, or None if unsuccessful.
+    """
+    retries = 0
+    current_code_1, current_code_2 = kcl_code_1, kcl_code_2
+
+    while retries <= max_retries:
+        print(f"\nMerge attempt {retries + 1}:")
+
+        # Merge the two KCL code blocks
+        merged_code = kcl_code_merger(current_code_1, current_code_2)
+
+        if not merged_code:
+            print("Failed to merge the KCL code blocks.")
+            return None
+
+        # Lint the merged code
+        lint_errors = lint_kcl_code(merged_code)
+
+        if lint_errors is None:
+            print("No linting errors found. Code is clean.")
+            return merged_code
+        else:
+            print("Linting errors found:")
+            print(lint_errors)
+            retries += 1
+
+            if retries > max_retries:
+                print("Maximum retries reached. Failed to fix linting errors.")
+                return None
+
+            # Use the linting error message to update the merge prompt
+            print("Regenerating merged code using the linting error message...")
+            prompt_with_errors = (
+                f"The merged KittyCAD code above has the following linting errors:\n{lint_errors}\n"
+                "Please update the code to fix these errors and ensure it adheres to KittyCAD language format and syntax."
+            )
+
+            # Update one of the input blocks with the merged code and adjust the prompt
+            current_code_1 = merged_code  # Use last merged code as the new base
+            current_code_2 = merged_code  # Ensures both inputs are now the same
+
+    print("Failed to generate a lint-free merged KCL code after maximum retries.")
+    return None
 
 
 hard_prompt = """
