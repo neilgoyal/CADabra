@@ -89,6 +89,7 @@ def prepare_image(image):
 # For structured outputs
 class SimplifiedPrompt(BaseModel):
     new_prompt: str
+    object_created: str
 
 
 def extract_frames_from_videos(
@@ -221,7 +222,9 @@ def answer_user_prompt(
                 3. Be explicit about placement, alignment, and spacing of features.
                 4. Include ONLY essential geometric details AND BE CONCISE!!
 
-                The output must be a SHORT, SIMPLE description of ONE OBJECT (~15 words) to design a CAD model for!!
+                The output must be a SHORT, SIMPLE description of ONE OBJECT (~15 words) to design a CAD model for!! (new_prompt)
+                The second output must be a DETAILED description of the object being created!! (object_created)
+
             """,
             },
             {"role": "user", "content": content},
@@ -232,5 +235,9 @@ def answer_user_prompt(
 
     # Extract and return the generated prompt text from the response
     simplified_prompt = json.loads(response.choices[0].message.content.strip())
+
+    # Clear all attachment folders
+    clear_folders(IMAGE_FOLDER_PATH, VIDEO_FOLDER_PATH, AUDIO_FOLDER_PATH)
+
     # Return the simplified prompt as structured JSON
     return simplified_prompt["new_prompt"]

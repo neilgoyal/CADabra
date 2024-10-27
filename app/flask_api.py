@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import asyncio
 from kittycad_api import *
+from multimodal_to_text import *
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -48,7 +49,8 @@ def text_to_cad():
         return jsonify({"error": "Missing 'prompt' in request"}), 400
 
     # Simplify the prompt
-    prompt = simplify_original_prompt(prompt)
+    multimodal_prompt = answer_user_prompt(text=prompt)
+    prompt = simplify_original_prompt(multimodal_prompt)
 
     # Run the asynchronous CAD generation function
     body = asyncio.run(simple_text_to_cad(prompt))
