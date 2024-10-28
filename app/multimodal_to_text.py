@@ -222,7 +222,7 @@ def answer_user_prompt(
                 3. Be explicit about placement, alignment, and spacing of features.
                 4. Include ONLY essential geometric details AND BE CONCISE!!
 
-                The output must be a SHORT, SIMPLE description of ONE OBJECT (~15 words) to design a CAD model for!! (new_prompt)
+                The output MUST be a SHORT, SIMPLE description of ONE OBJECT (~8 words) to design a CAD model for!! (new_prompt)
                 The second output must be a DETAILED description of the object being created!! (object_created)
 
             """,

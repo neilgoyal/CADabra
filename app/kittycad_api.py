@@ -203,7 +203,7 @@ async def simple_text_to_cad(prompt) -> TextToCad:
 # For structured outputs
 class KCLCode(BaseModel):
     updated_kcl_code: str
-    llm: str
+    reasoning: str
 
 
 def kcl_code_updater(kcl_code: str, prompt: str) -> Optional[str]:
@@ -232,7 +232,7 @@ def kcl_code_updater(kcl_code: str, prompt: str) -> Optional[str]:
                     f"Here is the original KittyCAD language code:\n```kcl\n{kcl_code}\n```\n\n"
                     f'Please update the code based on the following prompt:\n"{prompt}"\n\n'
                     "Provide only the updated, EXTREMELY COMPREHENSIVE and SYNTACTICALLY CORRECT KittyCAD language code without additional explanations. DO NOT LOSE THE ORIGINAL STRUCTURE OF THIS CAD OBJECT!! It MUST be valid KittyCAD language code! DECIMAL POINTS MUST NOT END WITH 0!!"
-                    f"The second output (llm) is a summary of the changes being made to the original CAD file code."
+                    f"The second output ('reasoning' field) is a DETAILED SUMMARY of the changes being made to the original KittyCAD language file code."
                 ),
             },
         ]
@@ -371,6 +371,7 @@ def generate_and_fix_kcl_code(
 
         a = kcl_code_updater(current_code, prompt)
         updated_code = a["updated_kcl_code"]
+        llm_output = str(a["reasoning"])
 
         if not updated_code:
             print("Failed to update the KCL code.")
@@ -381,7 +382,7 @@ def generate_and_fix_kcl_code(
 
         if lint_errors is None:
             print("No linting errors found. Code is clean.")
-            return updated_code
+            return kcl_code, llm_output
         else:
             print("Linting errors found:")
             print(lint_errors)
@@ -389,7 +390,7 @@ def generate_and_fix_kcl_code(
 
             if retries > max_retries:
                 print("Maximum retries reached. Failed to fix linting errors.")
-                return kcl_code
+                return kcl_code, "Sorry, prompt failed"
 
             # Use the error message to regenerate the code
             print("Regenerating code using the linting error message...")
@@ -404,8 +405,7 @@ def generate_and_fix_kcl_code(
             )
 
     print("Failed to generate lint-free KCL code after maximum retries.")
-    return kcl_code, a["llm"]
-
+    return kcl_code, llm_output
 
 def merge_and_fix_kcl_code(
     kcl_code_1: str, kcl_code_2: str, max_retries: int = 10
