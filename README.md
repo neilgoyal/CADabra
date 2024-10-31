@@ -34,18 +34,6 @@ We ran into several challenges during this hackathon. Some of these are:
 3. **Chaining multimodal inputs together**: Working with 5 different input types and 4 modes made it difficult to parse the inputs and transform it to the correct format. 
 4. **Generating enough Q&A pairs for GPT-4o finetuning**: We had to generate enough Q&A pairs (~1000 pairs) for our GPT-4o fine-tuning to be effective. With limited KCL documentation available, we used **Claude 3.5 Sonnet** to parse the documentation and generate enough data points.
 
-## Accomplishments that we're proud of
-- *⁠*Ideation and development**: Throughout the course of this hackathon, our project went from trying to make CAD development more efficient through AI to making an entire ecosystem revolutionising the computer aided design. In our past experience of hackathons, this has been unique in the sense that ideation was never a limiting factor and we found ourselves competing with time to implement it all. 
-- *⁠*Seamless flow**: Made by four tech students, CADabra's highlight is how the UI components flow making the designing experience very intuitive. A designer can not only visualise and edit the code using the KCL specific editor but can also choose to make edits through chatting MerlinAI giving the designer complete freedom over their 3D model. 
-- *⁠*Version Control**:  We realise the importance of version control and tracking model changes which is why we spent a lot of time brainstorming that. CADabra not only tracks files through timestamps but is also supercharged with AI to be able to merge 3D model files from different stamps and render them in the visualiser in real time. 
-- **User Friendly**: Be it someone who works professionally with 3D models or someone who is looking for a efficient solution the CADabra UI is accessible to all.
-
-## What we learned
-- Developing an application that can take in 4 modes and 5 input formats
-- Fine-tuning GPT-4o given a limited set of data available
-- Developing an online code editor with real-time 3D renderings
-- Working with CAD file formats and automatically generating CAD file code
-
 ## What's next for CADabra
 - **Collaboration on CADabra** We aim to make the platform one which allows intensive collaboration through addition of comments attached to specific lines of KCL code or even through visual pinpointing in the renderer. We also aim integrate this with the version control trackers of multiple developers mimic a git like software for CAD designers. 
 - **VR integration** To help designers visualize and edit the 3D models better. This greater interaction will allow better development of 3D models, and more importantly, better testing of the generated CAD files.
