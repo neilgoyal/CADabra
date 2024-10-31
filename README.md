@@ -1,11 +1,3 @@
-## Inspiration
-Computer Aided Design (CAD) is a technology that is used widely across manufacturing industries, no more so than the healthcare and biomedical industry. As of 2021, nearly **30% of prostheses incorporate CAD technology**. However, there are several issues with how CAD projects are developed today:
-- **27.9% of respondents** in a survey (341) indicated that collaborating in CAD is extremely difficult
-- **18.2% of respondents** in a survey (341) indicated serious issues with file version control
-- **7.1 hours of work a week** are lost on average due to CAD Software issues
-
-Given the growth of CAD technology in healthcare and its general use in manufacturing industries, we decided to develop an AI-powered collaborative CAD Development tool. 
-
 ## What it does
 CADabra is the first AI-powered CAD Development tool that enables collaboration on 3D files. We boast 5 key features that significantly increase the efficiency of CAD project development.
 - **Multimodal 3D model generation**: Automatic generation of CAD files based on multimodal user prompt. The user can describe an object they wish to build a CAD file for in **5 different ways**:
